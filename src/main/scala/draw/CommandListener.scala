@@ -2,35 +2,31 @@ package draw
 
 import scala.io.StdIn
 import CommandParser._
+import CanvasOperations._
 
 import scala.annotation.tailrec
 
 object CommandListener {
 
-  def readLoop(): Unit = {
-    buildCommand(promptAndRead) match {
-      case Right(c) => CanvasPrinter.printToConsole(Canvas(c))
-      case Left(e) => println(s"There was a problem with the command: $e")
+  @tailrec
+  def readLoop(canvas: Option[Canvas] = None): Unit = {
+    val canvasDetails = for {
+      cmd <- buildCommand(promptAndRead)
+      cvs <- updateCanvas(cmd, canvas)
+    } yield CanvasDetails(cvs, cmd)
+
+    canvasDetails match {
+      case Right(CanvasDetails(_, QuitCmd)) => ()
+      case Right(CanvasDetails(canvas, _)) => {
+        printToConsole(canvas)
+        readLoop(Some(canvas))
+      }
     }
-    readLoop()
   }
-
-
-  def readLoop2(): Unit = {
-    buildCommand(promptAndRead) match {
-      case Right(c) => CanvasPrinter.printToConsole(Canvas(c))
-      case Left(e) => println(s"There was a problem with the command: $e")
-    }
-    readLoop()
-  }
-
-
 
   def promptAndRead: String = {
     println("enter command: ")
     StdIn.readLine()
   }
-
-  def isNotQuit(cmd: Command) = !(cmd equals QuitCmd)
 
 }

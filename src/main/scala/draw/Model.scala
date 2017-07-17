@@ -15,3 +15,7 @@ case class BucketFillCmd(x: Int, y: Int, colour: String) extends Command
 case object QuitCmd extends Command
 
 case class CmdError(reason: String) extends Error
+
+case class CanvasError(reason: String) extends Error
+
+case class CanvasDetails(canvas: Canvas, command: Command)
