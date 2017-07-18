@@ -16,8 +16,14 @@ object CommandListener {
     } yield CanvasDetails(cvs, cmd)
 
     canvasDetails match {
+      case Left(error: Error) => {
+        println(s"Error: ${error.reason}")
+        readLoop(canvas)
+      }
+
       case Right(CanvasDetails(_, QuitCmd)) => ()
-      case Right(CanvasDetails(canvas, _)) => {
+
+      case Right(CanvasDetails(canvas, _))  => {
         printToConsole(canvas)
         readLoop(Some(canvas))
       }

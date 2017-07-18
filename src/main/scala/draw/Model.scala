@@ -2,7 +2,9 @@ package draw
 
 trait Command
 
-trait Error
+trait Error {
+  def reason: String
+}
 
 case class CreateCmd(width: Int, height: Int) extends Command
 
