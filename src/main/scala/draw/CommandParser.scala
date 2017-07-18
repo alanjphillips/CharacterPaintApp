@@ -6,9 +6,9 @@ object CommandParser {
     splitCommandParams(line) match {
       case cmd if cmd.head == "Q" => toQuitCommand
       case cmd if cmd.head == "C" => toCreateCommand(cmd.tail)
-      case cmd if cmd.head == "L" => toLineCommand(cmd)
-      case cmd if cmd.head == "R" => toRectangleCommand(cmd)
-      case cmd if cmd.head == "B" => toBucketFillCommand(cmd)
+      case cmd if cmd.head == "L" => toLineCommand(cmd.tail)
+      case cmd if cmd.head == "R" => toRectangleCommand(cmd.tail)
+      case cmd if cmd.head == "B" => toBucketFillCommand(cmd.tail)
       case cmd if cmd.isEmpty     => Left(CmdError(s"Empty Command"))
       case unknown                => Left(CmdError(s"Command not recognised: $unknown"))
     }
