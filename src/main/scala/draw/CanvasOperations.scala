@@ -1,7 +1,5 @@
 package draw
 
-import draw.CanvasOperations._
-
 case class Canvas(cells: Vector[Vector[Char]])
 
 object CanvasOperations {
@@ -15,14 +13,15 @@ object CanvasOperations {
     )
 
   def updateCanvas(cmd: Command, canvas: Option[Canvas]): Either[CanvasError, Canvas] = cmd match {
-    case createCmd: CreateCmd => createCanvas(createCmd)
-    case lineCmd: LineCmd     => lineOnCanvas(lineCmd, canvas)
+    case createCmd: CreateCmd       => createCanvas(createCmd)
+    case lineCmd: LineCmd           => lineOnCanvas(lineCmd, canvas)
+    case rectangleCmd: RectangleCmd => rectangleOnCanvas(rectangleCmd, canvas)
     case _ => Right(Canvas(Vector.empty[Row]))
   }
 
   private def createCanvas(createCmd: CreateCmd): Either[CanvasError, Canvas] = {
-    val borderRow: Row = Vector.fill(createCmd.width)('-')
-    val innerRow: Row = ('|' +: Vector.fill(createCmd.width - 2)(' ')) :+ ('|')
+    val borderRow: Row = Vector.fill(createCmd.width + 2)('-')
+    val innerRow: Row = ('|' +: Vector.fill(createCmd.width)(' ')) :+ ('|')
     Right(
       Canvas(
         cells = (borderRow +: Vector.fill(createCmd.height)(innerRow)) :+ borderRow
@@ -32,18 +31,39 @@ object CanvasOperations {
 
   private def lineOnCanvas(lineCmd: LineCmd, canvas: Option[Canvas]): Either[CanvasError, Canvas] = {
     val eCanvas = canvas.toRight(CanvasError(s"No Canvas presented to draw line on."))
-    eCanvas.flatMap(canvas => {
+    eCanvas.flatMap(canvas =>
       if (lineCmd.isHorizontal)
         plotHorizontalLine(lineCmd, canvas)
       else if (lineCmd.isVertical)
         plotVerticalLine(lineCmd, canvas)
       else
         Left(CanvasError(s"${lineCmd.orientation} lines not supported."))
-      }
     )
   }
 
-  private def plotVerticalLine(lineCmd: LineCmd, canvas: Canvas, pixel: Char = 'X'): Either[CanvasError, Canvas] = {
+  private def rectangleOnCanvas(rectangleCmd: RectangleCmd, canvasOpt: Option[Canvas]): Either[CanvasError, Canvas] = {
+    val eCanvas = canvasOpt.toRight(CanvasError(s"No Canvas presented to draw line on."))
+
+    eCanvas.flatMap { canvas =>
+      val hLineTop = LineCmd(rectangleCmd.x1, rectangleCmd.y1, rectangleCmd.x2, rectangleCmd.y1)
+      val hLineBottom = LineCmd(rectangleCmd.x1, rectangleCmd.y2, rectangleCmd.x2, rectangleCmd.y2)
+      val vLineLeft = LineCmd(rectangleCmd.x1, rectangleCmd.y1, rectangleCmd.x1, rectangleCmd.y2)
+      val vLineRight = LineCmd(rectangleCmd.x2, rectangleCmd.y1, rectangleCmd.x2, rectangleCmd.y2)
+
+      if (rectangleFits(hLineTop, vLineLeft, canvas)) {
+        for {
+          canvasLineTop  <- lineOnCanvas(hLineTop, Some(canvas))
+          canvasLineBot  <- lineOnCanvas(hLineBottom, Some(canvasLineTop))
+          canvasLineLeft <- lineOnCanvas(vLineLeft, Some(canvasLineBot))
+          canvasFullRect <- lineOnCanvas(vLineRight, Some(canvasLineLeft))
+        } yield canvasFullRect
+      }
+      else
+        Left(CanvasError(s"$rectangleCmd rectangle will not fit."))
+    }
+  }
+
+  private def plotVerticalLine(lineCmd: LineCmd, canvas: Canvas, pixel: Char = 'X'): Either[CanvasError, Canvas] =
     if (vLineFits(lineCmd, canvas)) {
       val len = (lineCmd.y2 - lineCmd.y1) + 1
       val updated = canvas.cells.slice(lineCmd.y1, lineCmd.y2 + 1).map(
@@ -57,9 +77,8 @@ object CanvasOperations {
     }
     else
       Left(CanvasError(s"${lineCmd} line will not fit."))
-  }
 
-  private def plotHorizontalLine(lineCmd: LineCmd, canvas: Canvas, pixel: Char = 'X'): Either[CanvasError, Canvas] = {
+  private def plotHorizontalLine(lineCmd: LineCmd, canvas: Canvas, pixel: Char = 'X'): Either[CanvasError, Canvas] =
     if (hLineFits(lineCmd, canvas)) {
       val len = (lineCmd.x2 - lineCmd.x1) + 1
       val updatedRow = canvas.cells(lineCmd.y1).patch(lineCmd.x1, Vector.fill[Char](len)(pixel), len)
@@ -71,16 +90,18 @@ object CanvasOperations {
     }
     else
       Left(CanvasError(s"${lineCmd} line will not fit."))
-  }
 
   private def hLineFits(lineCmd: LineCmd, canvas: Canvas): Boolean =
     lineCmd.isHorizontal &&
-      (lineCmd.y1 > 0 && lineCmd.y1 < canvas.cells.size - 1) &&     // line starting point on y-axis fits
-      (lineCmd.x1 > 0 && lineCmd.x2 < canvas.cells.head.size - 1)   // full horizontal line fits
+      (lineCmd.y1 > 0 && lineCmd.y1 < canvas.cells.size - 1) && // line starting point on y-axis fits
+      (lineCmd.x1 > 0 && lineCmd.x2 < canvas.cells.head.size - 1) // full horizontal line fits
 
   private def vLineFits(lineCmd: LineCmd, canvas: Canvas): Boolean =
     lineCmd.isVertical &&
       (lineCmd.x1 > 0 && lineCmd.x1 < canvas.cells.head.size - 1) &&  // line starting point on x-axis fits
       (lineCmd.y1 > 0 && lineCmd.y2 < canvas.cells.size - 1)          // full vertical line fits
+
+  private def rectangleFits(hLineCmd: LineCmd, vLineCmd: LineCmd, canvas: Canvas): Boolean =
+    hLineFits(hLineCmd, canvas) && vLineFits(vLineCmd, canvas)
 
 }
