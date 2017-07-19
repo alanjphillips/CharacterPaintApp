@@ -34,6 +34,32 @@ class CanvasSpec  extends WordSpec with Matchers {
       canvas.hLineFits(line) shouldBe false
     }
 
+    "have a vertical line fit" in {
+      val canvas = validCanvas
+      val line = LineCmd(2, 1, 2, 3)
+      canvas.vLineFits(line) shouldBe true
+    }
+
+    "fail a vertical line fit" in {
+      val canvas = validCanvas
+      val line = LineCmd(2, 1, 2, 6)
+      canvas.vLineFits(line) shouldBe false
+    }
+
+    "have a rectangle fit" in {
+      val canvas = validCanvas
+      val hline = LineCmd(1, 1, 3, 1)
+      val vline = LineCmd(1, 1, 1, 3)
+      canvas.rectangleFits(hline, vline) shouldBe true
+    }
+
+    "fail a rectangle fit" in {
+      val canvas = validCanvas
+      val hline = LineCmd(1, 1, 3, 1)
+      val vline = LineCmd(1, 1, 1, 9)
+      canvas.rectangleFits(hline, vline) shouldBe false
+    }
+
   }
 
 }
