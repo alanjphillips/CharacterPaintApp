@@ -1,11 +1,14 @@
 package draw
 
+import scala.annotation.tailrec
+import scala.collection.immutable.Queue
+
 case class Canvas(cells: Vector[Vector[Char]]) {
 
   def hLineFits(lineCmd: LineCmd): Boolean =
     lineCmd.isHorizontal &&
-      (lineCmd.y1 > 0 && lineCmd.y1 < cells.size - 1) && // line starting point on y-axis fits
-      (lineCmd.x1 > 0 && lineCmd.x2 < cells.head.size - 1) // full horizontal line fits
+      (lineCmd.y1 > 0 && lineCmd.y1 < cells.size - 1) &&       // line starting point on y-axis fits
+      (lineCmd.x1 > 0 && lineCmd.x2 < cells.head.size - 1)     // full horizontal line fits
 
   def vLineFits(lineCmd: LineCmd): Boolean =
     lineCmd.isVertical &&
@@ -80,22 +83,56 @@ object CanvasOperations {
   }
 
   private def bucketFillCanvas(bucketFillCmd: BucketFillCmd, canvasOpt: Option[Canvas], linePixel: Char = 'X'): Either[CanvasError, Canvas] = {
+    @tailrec
+    def fillCanvas(cellsToFill: Queue[BucketFillCmd], canvas: Canvas): Canvas = {
+      if (cellsToFill.isEmpty)
+        canvas
+      else {
+        val (fillCmd, cellsRemaining) = cellsToFill.dequeue
+
+        val linePixelPre = canvas.cells(fillCmd.y).lastIndexOf(linePixel, fillCmd.x)
+        val linePixelPost = canvas.cells(fillCmd.y).indexOf(linePixel, fillCmd.x + 1)
+        val startIndex = if (linePixelPre != -1) linePixelPre + 1 else 1
+        val endIndex = if (linePixelPost != -1) linePixelPost else canvas.cells(fillCmd.y).size - 1
+
+        val len = endIndex - startIndex
+        val updatedRow = canvas.cells(fillCmd.y).patch(startIndex, Vector.fill[Char](len)(fillCmd.colour), len)
+        val updatedCanvas = Canvas(canvas.cells.updated(fillCmd.y, updatedRow))
+
+        val cellsAbove =
+          if (fillCmd.y - 1 > 0) {
+            val cellsAboveFilledRow: Vector[(Char, Int)] = canvas.cells(fillCmd.y - 1).slice(startIndex, endIndex).zip(startIndex to endIndex)
+            cellsAboveFilledRow.foldLeft(cellsRemaining)(
+              (accQ, next) => {
+                val toFillAbove = fillCmd.copy(x = next._2, y = fillCmd.y - 1)
+                if (next._1 != linePixel && next._1 != toFillAbove.colour && !accQ.contains(toFillAbove))
+                  accQ.enqueue(toFillAbove)
+                else accQ
+              }
+            )
+          } else cellsRemaining
+
+        val cellsAboveAndBelow =
+          if (fillCmd.y + 1 < canvas.cells.size - 1) {
+            val cellsBelowFilledRow: Vector[(Char, Int)] = canvas.cells(fillCmd.y + 1).slice(startIndex, endIndex).zip(startIndex to endIndex)
+            cellsBelowFilledRow.foldLeft(cellsAbove)(
+              (accQ, next) => {
+                val toFillBelow = fillCmd.copy(x = next._2, y = fillCmd.y + 1)
+                if (next._1 != linePixel && next._1 != toFillBelow.colour && !accQ.contains(toFillBelow))
+                  accQ.enqueue(toFillBelow)
+                else accQ
+              }
+            )
+          } else cellsAbove
+
+        fillCanvas(cellsAboveAndBelow, updatedCanvas)
+      }
+    }
+
     val eCanvas = canvasOpt.toRight(CanvasError(s"No Canvas presented to draw line on."))
     eCanvas.flatMap { canvas =>
-      val linePixelPre = canvas.cells(bucketFillCmd.y).lastIndexOf(linePixel, bucketFillCmd.x) + 1
-      val linePixelPost = canvas.cells(bucketFillCmd.y).indexOf(linePixel, bucketFillCmd.x + 1)
-
-      val startIndex = if (linePixelPre != -1) linePixelPre else 1
-      val endIndex = if (linePixelPost != -1) linePixelPost else canvas.cells(bucketFillCmd.y).size - 1
-      val len =  endIndex - startIndex
-
-      val updatedRow = canvas.cells(bucketFillCmd.y).patch(startIndex, Vector.fill[Char](len)(bucketFillCmd.colour), len)
-
-      Right(
-        Canvas(
-          cells = canvas.cells.updated(bucketFillCmd.y, updatedRow)
-        )
-      )
+      val filledCanvas = fillCanvas(Queue(bucketFillCmd), canvas)
+      Right(filledCanvas)
     }
   }
 
