@@ -28,9 +28,10 @@ object CanvasOperations {
     )
 
   def updateCanvas(cmd: Command, canvas: Option[Canvas]): Either[CanvasError, Canvas] = cmd match {
-    case createCmd: CreateCmd       => createCanvas(createCmd)
-    case lineCmd: LineCmd           => lineOnCanvas(lineCmd, canvas)
-    case rectangleCmd: RectangleCmd => rectangleOnCanvas(rectangleCmd, canvas)
+    case createCmd: CreateCmd         => createCanvas(createCmd)
+    case lineCmd: LineCmd             => lineOnCanvas(lineCmd, canvas)
+    case rectangleCmd: RectangleCmd   => rectangleOnCanvas(rectangleCmd, canvas)
+    case bucketFillCmd: BucketFillCmd => bucketFillCanvas(bucketFillCmd, canvas)
     case _ => Right(Canvas(Vector.empty[Row]))
   }
 
@@ -44,8 +45,8 @@ object CanvasOperations {
     )
   }
 
-  private def lineOnCanvas(lineCmd: LineCmd, canvas: Option[Canvas]): Either[CanvasError, Canvas] = {
-    val eCanvas = canvas.toRight(CanvasError(s"No Canvas presented to draw line on."))
+  private def lineOnCanvas(lineCmd: LineCmd, canvasOpt: Option[Canvas]): Either[CanvasError, Canvas] = {
+    val eCanvas = canvasOpt.toRight(CanvasError(s"No Canvas presented to draw line on."))
     eCanvas.flatMap(canvas =>
       if (lineCmd.isHorizontal)
         plotHorizontalLine(lineCmd, canvas)
@@ -75,6 +76,26 @@ object CanvasOperations {
       }
       else
         Left(CanvasError(s"$rectangleCmd rectangle will not fit."))
+    }
+  }
+
+  private def bucketFillCanvas(bucketFillCmd: BucketFillCmd, canvasOpt: Option[Canvas], linePixel: Char = 'X'): Either[CanvasError, Canvas] = {
+    val eCanvas = canvasOpt.toRight(CanvasError(s"No Canvas presented to draw line on."))
+    eCanvas.flatMap { canvas =>
+      val linePixelPre = canvas.cells(bucketFillCmd.y).lastIndexOf(linePixel, bucketFillCmd.x)
+      val linePixelPost = canvas.cells(bucketFillCmd.y).indexOf(linePixel, bucketFillCmd.x + 1)
+
+      val startIndex = if (linePixelPre != -1) linePixelPre else 1
+      val endIndex = if (linePixelPost != -1) linePixelPost else canvas.cells(bucketFillCmd.y).size - 1
+      val len =  endIndex - startIndex
+
+      val updatedRow = canvas.cells(bucketFillCmd.y).patch(startIndex, Vector.fill[Char](len)(bucketFillCmd.colour), len)
+
+      Right(
+        Canvas(
+          cells = canvas.cells.updated(bucketFillCmd.y, updatedRow)
+        )
+      )
     }
   }
 

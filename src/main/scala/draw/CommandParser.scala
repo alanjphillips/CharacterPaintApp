@@ -60,7 +60,7 @@ object CommandParser {
         BucketFillCmd(
           tailParams(0).toInt,
           tailParams(1).toInt,
-          tailParams(2)
+          tailParams(2).toCharArray.head
         )
       )
 
