@@ -9,8 +9,7 @@ object CommandParser {
       case cmd if cmd.head == "L" => toLineCommand(cmd.tail)
       case cmd if cmd.head == "R" => toRectangleCommand(cmd.tail)
       case cmd if cmd.head == "B" => toBucketFillCommand(cmd.tail)
-      case cmd if cmd.isEmpty     => Left(CmdError(s"Empty Command"))
-      case unknown                => Left(CmdError(s"Command not recognised: $unknown"))
+      case _                      => Left(CmdError(s"Command not recognised: $line"))
     }
 
   private def splitCommandParams(cmdParams: String) = cmdParams.trim.split(" ").toList

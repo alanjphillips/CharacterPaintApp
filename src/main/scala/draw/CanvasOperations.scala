@@ -82,7 +82,7 @@ object CanvasOperations {
   private def bucketFillCanvas(bucketFillCmd: BucketFillCmd, canvasOpt: Option[Canvas], linePixel: Char = 'X'): Either[CanvasError, Canvas] = {
     val eCanvas = canvasOpt.toRight(CanvasError(s"No Canvas presented to draw line on."))
     eCanvas.flatMap { canvas =>
-      val linePixelPre = canvas.cells(bucketFillCmd.y).lastIndexOf(linePixel, bucketFillCmd.x)
+      val linePixelPre = canvas.cells(bucketFillCmd.y).lastIndexOf(linePixel, bucketFillCmd.x) + 1
       val linePixelPost = canvas.cells(bucketFillCmd.y).indexOf(linePixel, bucketFillCmd.x + 1)
 
       val startIndex = if (linePixelPre != -1) linePixelPre else 1
