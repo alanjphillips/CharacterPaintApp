@@ -1,6 +1,10 @@
+Draw Console
+------------
 
-BucketFill is based on the following algorithm, Queue based ScanLine Fill:
+BucketFill functionality is based on the following algorithm, Queue based ScanLine Fill:
 https://en.wikipedia.org/wiki/Flood_fill#Scanline_fill
+
+From Wikipedia page:
 
 Flood-fill (node, target-color, replacement-color):
  1. If target-color is equal to replacement-color, return.
@@ -17,6 +21,7 @@ Flood-fill (node, target-color, replacement-color):
 12.             If the color of the node to the south of n is target-color, add that node to Q.
 13. Continue looping until Q is exhausted.
 14. Return.
+
 
 Advantages:
 - Tail recursive so stack overflow problems are avoided

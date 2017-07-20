@@ -18,10 +18,20 @@ class CommandParserSpec extends WordSpec with Matchers {
       buildCommand(input) shouldBe Right(expected)
     }
 
+    "return CmdError for incorrect number of params for a Create formatted String" in {
+      val input = "C 20 4 5"
+      buildCommand(input) shouldBe Left(CmdError(s"Incorrect number of params following CreateCmd 'C': List(20, 4, 5)"))
+    }
+
     "build a LineCommand given a Line formatted String" in {
       val input = "L 1 2 6 2"
       val expected = LineCmd(1, 2, 6, 2)
       buildCommand(input) shouldBe Right(expected)
+    }
+
+    "return CmdError for incorrect number of params for a Line formatted String" in {
+      val input = "L 1"
+      buildCommand(input) shouldBe Left(CmdError(s"Incorrect number of params following LineCmd 'L': List(1)"))
     }
 
     "build a RectangleCommand given a Rectangle formatted String" in {
@@ -30,10 +40,20 @@ class CommandParserSpec extends WordSpec with Matchers {
       buildCommand(input) shouldBe Right(expected)
     }
 
+    "return CmdError for incorrect number of params for a Rectangle formatted String" in {
+      val input = "R 16 1 20"
+      buildCommand(input) shouldBe Left(CmdError(s"Incorrect number of params for RectangleCmd 'R': List(16, 1, 20)"))
+    }
+
     "build a BucketFillCommand given a BucketFill formatted String" in {
       val input = "B 10 3 o"
       val expected = BucketFillCmd(10, 3, 'o')
       buildCommand(input) shouldBe Right(expected)
+    }
+
+    "return CmdError for incorrect number of params for a BucketFill formatted String" in {
+      val input = "B 10 3"
+      buildCommand(input) shouldBe Left(CmdError(s"Incorrect number of params for BucketFillCmd 'B': List(10, 3)"))
     }
 
     "return a CmdError for an unknown input Command String" in {
