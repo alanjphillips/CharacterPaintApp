@@ -92,6 +92,18 @@ class CanvasOperationsSpec extends WordSpec with Matchers {
       updateCanvas(UnknownCmd, None) shouldBe Right(Canvas(Vector.empty[Row]))
     }
 
+    "fail when bucket-fill start point is on a line" in {
+      val rectangleCmd = RectangleCmd(2, 2, 3, 3)
+      val fillCmd = BucketFillCmd(2, 2, 'o')
+
+      val resultCanvas = for {
+        canvas1 <- updateCanvas(rectangleCmd, Some(validCanvasLarge))
+        canvas2 <- updateCanvas(fillCmd, Some(canvas1))
+      } yield canvas2
+
+      resultCanvas shouldBe Left(CanvasError(s"BucketFill starting point $fillCmd is on a Line."))
+    }
+
   }
 
 }

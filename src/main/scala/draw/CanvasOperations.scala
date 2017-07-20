@@ -126,8 +126,11 @@ object CanvasOperations {
 
     val eCanvas = canvasOpt.toRight(CanvasError(s"No Canvas presented to draw line on."))
     eCanvas.flatMap { canvas =>
-      val filledCanvas = fillCanvas(Queue(bucketFillCmd), canvas)
-      Right(filledCanvas)
+      if (canvas.cells(bucketFillCmd.y)(bucketFillCmd.x) != linePixel) {
+        val filledCanvas = fillCanvas(Queue(bucketFillCmd), canvas)
+        Right(filledCanvas)
+      } else
+        Left(CanvasError(s"BucketFill starting point $bucketFillCmd is on a Line."))
     }
   }
 
