@@ -35,4 +35,9 @@ object CommandListener {
     StdIn.readLine()
   }
 
+  def printToConsole(canvas: Canvas): Unit =
+    canvas.cells.foreach(row =>
+      println(row.mkString)
+    )
+
 }

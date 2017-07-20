@@ -25,11 +25,6 @@ object CanvasOperations {
   type Row = Vector[Char]
   type Matrix = Vector[Row]
 
-  def printToConsole(canvas: Canvas): Unit =
-    canvas.cells.foreach(row =>
-      println(row.mkString)
-    )
-
   def updateCanvas(cmd: Command, canvas: Option[Canvas]): Either[CanvasError, Canvas] = cmd match {
     case createCmd: CreateCmd         => createCanvas(createCmd)
     case lineCmd: LineCmd             => lineOnCanvas(lineCmd, canvas)
