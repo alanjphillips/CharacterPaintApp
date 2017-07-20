@@ -18,6 +18,11 @@ class CanvasOperationsSpec extends WordSpec with Matchers {
       updateCanvas(horizontalLineCmd, Some(validCanvas)) shouldBe Right(validCanvasHorizontalLine)
     }
 
+    "draw a horizontal line with reverse ordered coordinates on blank Canvas" in {
+      val horizontalLineCmd = LineCmd(3, 1, 1, 1)
+      updateCanvas(horizontalLineCmd, Some(validCanvas)) shouldBe Right(validCanvasHorizontalLine)
+    }
+
     "fail to fit horizontal line on blank Canvas" in {
       val horizontalLineCmd = LineCmd(1, 1, 13, 1)
       updateCanvas(horizontalLineCmd, Some(validCanvas)) shouldBe Left(CanvasError(s"${horizontalLineCmd} line will not fit."))
@@ -25,6 +30,11 @@ class CanvasOperationsSpec extends WordSpec with Matchers {
 
     "draw a vertical line on blank Canvas" in {
       val verticalLineCmd = LineCmd(2, 1, 2, 3)
+      updateCanvas(verticalLineCmd, Some(validCanvas)) shouldBe Right(validCanvasVerticalLine)
+    }
+
+    "draw a vertical line with reverse ordered coordinates on blank Canvas" in {
+      val verticalLineCmd = LineCmd(2, 3, 2, 1)
       updateCanvas(verticalLineCmd, Some(validCanvas)) shouldBe Right(validCanvasVerticalLine)
     }
 

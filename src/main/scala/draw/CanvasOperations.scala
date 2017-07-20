@@ -134,32 +134,36 @@ object CanvasOperations {
     }
   }
 
-  private def plotVerticalLine(lineCmd: LineCmd, canvas: Canvas, pixel: Char = 'X'): Either[CanvasError, Canvas] =
-    if (canvas.vLineFits(lineCmd)) {
-      val len = (lineCmd.y2 - lineCmd.y1) + 1
-      val updated = canvas.cells.slice(lineCmd.y1, lineCmd.y2 + 1).map(
-        row => row.updated(lineCmd.x1, pixel)
+  private def plotVerticalLine(lineCmd: LineCmd, canvas: Canvas, pixel: Char = 'X'): Either[CanvasError, Canvas] = {
+    val lineNorm = lineCmd.normalize
+    if (canvas.vLineFits(lineNorm)) {
+      val len = (lineNorm.y2 - lineNorm.y1) + 1
+      val updated = canvas.cells.slice(lineNorm.y1, lineNorm.y2 + 1).map(
+        row => row.updated(lineNorm.x1, pixel)
       )
       Right(
         Canvas(
-          cells = canvas.cells.patch(lineCmd.y1, updated, len)
+          cells = canvas.cells.patch(lineNorm.y1, updated, len)
         )
       )
     }
     else
       Left(CanvasError(s"${lineCmd} line will not fit."))
+  }
 
-  private def plotHorizontalLine(lineCmd: LineCmd, canvas: Canvas, pixel: Char = 'X'): Either[CanvasError, Canvas] =
-    if (canvas.hLineFits(lineCmd)) {
-      val len = (lineCmd.x2 - lineCmd.x1) + 1
-      val updatedRow = canvas.cells(lineCmd.y1).patch(lineCmd.x1, Vector.fill[Char](len)(pixel), len)
+  private def plotHorizontalLine(lineCmd: LineCmd, canvas: Canvas, pixel: Char = 'X'): Either[CanvasError, Canvas] = {
+    val lineNorm = lineCmd.normalize
+    if (canvas.hLineFits(lineNorm)) {
+      val len = (lineNorm.x2 - lineNorm.x1) + 1
+      val updatedRow = canvas.cells(lineNorm.y1).patch(lineNorm.x1, Vector.fill[Char](len)(pixel), len)
       Right(
         Canvas(
-          cells = canvas.cells.updated(lineCmd.y1, updatedRow)
+          cells = canvas.cells.updated(lineNorm.y1, updatedRow)
         )
       )
     }
     else
       Left(CanvasError(s"${lineCmd} line will not fit."))
+  }
 
 }

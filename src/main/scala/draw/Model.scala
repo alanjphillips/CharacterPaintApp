@@ -24,6 +24,12 @@ case class LineCmd(x1: Int, y1: Int, x2: Int, y2: Int) extends Command {
 
   def isHorizontal = orientation == Horizontal
   def isVertical = orientation == Vertical
+
+  def normalize: LineCmd = this match {
+    case line if line.isHorizontal => if (x1 > x2) copy(x1 = x2, x2 = x1) else this
+    case line if line.isVertical   => if (y1 > y2) copy(y1 = y2, y2 = y1) else this
+  }
+
 }
 
 case class RectangleCmd(x1: Int, y1: Int, x2: Int, y2: Int) extends Command

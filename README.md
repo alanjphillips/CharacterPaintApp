@@ -13,6 +13,7 @@ Run Instructions
 
 Design Notes
 ------------
+
 BucketFill functionality is based on the following algorithm, Queue based ScanLine Fill:
 https://en.wikipedia.org/wiki/Flood_fill#Scanline_fill
 
@@ -33,7 +34,6 @@ Flood-fill (node, target-color, replacement-color):
 12.             If the color of the node to the south of n is target-color, add that node to Q.
 13. Continue looping until Q is exhausted.
 14. Return.
-
 
 Advantages:
 - Tail recursive so stack overflow problems are avoided
