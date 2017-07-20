@@ -1,5 +1,7 @@
 package draw
 
+import scala.util.{Failure, Success, Try}
+
 object CommandParser {
 
   def buildCommand(line: String): Either[Error, Command] =
@@ -14,52 +16,65 @@ object CommandParser {
 
   private def splitCommandParams(cmdParams: String) = cmdParams.trim.split(" ").toList
 
-  private def toCreateCommand(tailParams: List[String]): Either[Error, CreateCmd] =
+  private val parsePF: PartialFunction[Try[Command], Either[Error, Command]] = {
+    case Success(cmd)  => Right(cmd)
+    case Failure(fail) => Left(CmdError(s"Failed to parse command: ${fail.getMessage}"))
+  }
+
+  private def toCreateCommand(tailParams: List[String]): Either[Error, Command] =
     if (tailParams.size != 2)
       Left(CmdError(s"Incorrect number of params following CreateCmd 'C': $tailParams"))
     else
-      Right(
-        CreateCmd(
-          tailParams(0).toInt,
-          tailParams(1).toInt
+      parsePF(
+        Try(
+          CreateCmd(
+            tailParams(0).toInt,
+            tailParams(1).toInt
+          )
         )
       )
 
-  private def toLineCommand(tailParams: List[String]): Either[Error, LineCmd] =
+  private def toLineCommand(tailParams: List[String]): Either[Error, Command] =
     if (tailParams.size != 4)
       Left(CmdError(s"Incorrect number of params following LineCmd 'L': $tailParams"))
     else
-      Right(
-        LineCmd(
-          tailParams(0).toInt,
-          tailParams(1).toInt,
-          tailParams(2).toInt,
-          tailParams(3).toInt
+      parsePF(
+        Try(
+          LineCmd(
+            tailParams(0).toInt,
+            tailParams(1).toInt,
+            tailParams(2).toInt,
+            tailParams(3).toInt
+          )
         )
       )
 
-  private def toRectangleCommand(tailParams: List[String]): Either[Error, RectangleCmd] =
+  private def toRectangleCommand(tailParams: List[String]): Either[Error, Command] =
     if (tailParams.size != 4)
       Left(CmdError(s"Incorrect number of params for RectangleCmd 'R': $tailParams"))
     else
-      Right(
-        RectangleCmd(
-          tailParams(0).toInt,
-          tailParams(1).toInt,
-          tailParams(2).toInt,
-          tailParams(3).toInt
+      parsePF(
+        Try(
+          RectangleCmd(
+            tailParams(0).toInt,
+            tailParams(1).toInt,
+            tailParams(2).toInt,
+            tailParams(3).toInt
+          )
         )
       )
 
-  private def toBucketFillCommand(tailParams: List[String]): Either[Error, BucketFillCmd] =
+  private def toBucketFillCommand(tailParams: List[String]): Either[Error, Command] =
     if (tailParams.size != 3)
       Left(CmdError(s"Incorrect number of params for BucketFillCmd 'B': $tailParams"))
     else
-      Right(
-        BucketFillCmd(
-          tailParams(0).toInt,
-          tailParams(1).toInt,
-          tailParams(2).toCharArray.head
+      parsePF(
+        Try(
+          BucketFillCmd(
+            tailParams(0).toInt,
+            tailParams(1).toInt,
+            tailParams(2).toCharArray.head
+          )
         )
       )
 
