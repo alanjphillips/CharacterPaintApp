@@ -1,6 +1,18 @@
 Draw Console
 ------------
 
+Run Instructions
+----------------
+1. CD to DrawConsole folder
+2. To run tests
+- sbt test
+3. To run program:
+- sbt run
+4. Follow on screen instructions
+5. Available Commands and format are available in the Code Challenge PDF file. 
+
+Design Notes
+------------
 BucketFill functionality is based on the following algorithm, Queue based ScanLine Fill:
 https://en.wikipedia.org/wiki/Flood_fill#Scanline_fill
 
