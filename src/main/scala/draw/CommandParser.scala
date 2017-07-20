@@ -16,6 +16,10 @@ object CommandParser {
 
   private def splitCommandParams(cmdParams: String) = cmdParams.trim.split(" ").toList
 
+  /**
+    * Converts outcome of Try[Command] to Either[Error, Command]].
+    * Bad user input to toInt can produce a RT exception so this is necessary.
+   */
   private val parsePF: PartialFunction[Try[Command], Either[Error, Command]] = {
     case Success(cmd)  => Right(cmd)
     case Failure(fail) => Left(CmdError(s"Failed to parse command: ${fail.getMessage}"))

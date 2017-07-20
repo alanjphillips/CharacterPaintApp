@@ -87,28 +87,28 @@ object CanvasOperations {
 
         val linePixelPre = canvas.cells(fillCmd.y).lastIndexOf(linePixel, fillCmd.x)
         val linePixelPost = canvas.cells(fillCmd.y).indexOf(linePixel, fillCmd.x + 1)
-        val startIndex = if (linePixelPre != -1) linePixelPre + 1 else 1
-        val endIndex = if (linePixelPost != -1) linePixelPost else canvas.cells(fillCmd.y).size - 1
+        val startIndex = if (linePixelPre != -1) linePixelPre + 1 else 1                                          // Start index of horizontal line to fill
+        val endIndex = if (linePixelPost != -1) linePixelPost else canvas.cells(fillCmd.y).size - 1               // End index of horizontal line to fill
 
         val len = endIndex - startIndex
-        val updatedRow = canvas.cells(fillCmd.y).patch(startIndex, Vector.fill[Char](len)(fillCmd.colour), len)
-        val updatedCanvas = Canvas(canvas.cells.updated(fillCmd.y, updatedRow))
+        val updatedRow = canvas.cells(fillCmd.y).patch(startIndex, Vector.fill[Char](len)(fillCmd.colour), len)   // Perform the fill on selected line portion
+        val updatedCanvas = Canvas(canvas.cells.updated(fillCmd.y, updatedRow))                                   // Update Canvas with updated line
 
         val cellsAbove =
-          if (fillCmd.y - 1 > 0) {
-            val cellsAboveFilledRow: Vector[(Char, Int)] = canvas.cells(fillCmd.y - 1).slice(startIndex, endIndex).zip(startIndex to endIndex)
-            cellsAboveFilledRow.foldLeft(cellsRemaining)(
-              (accQ, next) => {
-                val toFillAbove = fillCmd.copy(x = next._2, y = fillCmd.y - 1)
-                if (next._1 != linePixel && next._1 != toFillAbove.colour && !accQ.contains(toFillAbove))
-                  accQ.enqueue(toFillAbove)
-                else accQ
+          if (fillCmd.y - 1 > 0) {                                                                                // Find and enqueue cells above current line that can be filled
+            val cellsAboveFilledRow: Vector[(Char, Int)] = canvas.cells(fillCmd.y - 1).slice(startIndex, endIndex).zip(startIndex to endIndex)   // Zip to give tuple of (cell value, cell index) so that fillCmd can be created and added to Queue of cells to fill
+            cellsAboveFilledRow.foldLeft(cellsRemaining)(                                                         // Fold over above cells, accumulating cells that need to be filled
+              (accQ, next) => {                                                                                   // Fold function
+                val toFillAbove = fillCmd.copy(x = next._2, y = fillCmd.y - 1)                                    // Create BucketFillCmd called toFillAbove, to be enqueued to be filled if valid
+                if (next._1 != linePixel && next._1 != toFillAbove.colour && !accQ.contains(toFillAbove))         // Check that cell above is not a line pixel, is not already filled, not already enqueued
+                  accQ.enqueue(toFillAbove)                                                                       // Enqueue if passes and return updated queue
+                else accQ                                                                                         // if not passes, return existing queue
               }
             )
           } else cellsRemaining
 
         val cellsAboveAndBelow =
-          if (fillCmd.y + 1 < canvas.cells.size - 1) {
+          if (fillCmd.y + 1 < canvas.cells.size - 1) {                                                            // Same as cellsAbove creation, but working downwards
             val cellsBelowFilledRow: Vector[(Char, Int)] = canvas.cells(fillCmd.y + 1).slice(startIndex, endIndex).zip(startIndex to endIndex)
             cellsBelowFilledRow.foldLeft(cellsAbove)(
               (accQ, next) => {
