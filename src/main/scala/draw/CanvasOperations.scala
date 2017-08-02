@@ -25,6 +25,10 @@ object CanvasOperations {
   type Row = Vector[Char]
   type Matrix = Vector[Row]
 
+  trait Direction
+  case object Up extends Direction
+  case object Down extends Direction
+
   def updateCanvas(cmd: Command, canvas: Option[Canvas]): Either[CanvasError, Canvas] = cmd match {
     case createCmd: CreateCmd         => createCanvas(createCmd)
     case lineCmd: LineCmd             => lineOnCanvas(lineCmd, canvas)
@@ -84,14 +88,9 @@ object CanvasOperations {
         canvas
       else {
         val (fillCmd, cellsRemaining) = cellsToFill.dequeue
-
-        val linePixelPre = canvas.cells(fillCmd.y).lastIndexOf(linePixel, fillCmd.x)
-        val linePixelPost = canvas.cells(fillCmd.y).indexOf(linePixel, fillCmd.x + 1)
-        val startIndex = if (linePixelPre != -1) linePixelPre + 1 else 1                                          // Start index of horizontal line to fill
-        val endIndex = if (linePixelPost != -1) linePixelPost else canvas.cells(fillCmd.y).size - 1               // End index of horizontal line to fill
-
+        val (startIndex, endIndex) = makeIndexBoundaries(fillCmd, canvas, linePixel)
         val len = endIndex - startIndex
-        val updatedRow = canvas.cells(fillCmd.y).patch(startIndex, Vector.fill[Char](len)(fillCmd.colour), len)   // Perform the fill on selected line portion
+        val updatedRow = fillLinePortion(canvas, fillCmd, startIndex, len)                                        // Perform the fill on selected line portion
         val updatedCanvas = Canvas(canvas.cells.updated(fillCmd.y, updatedRow))                                   // Update Canvas with updated line
 
         val cellsAbove =
@@ -133,6 +132,17 @@ object CanvasOperations {
         Left(CanvasError(s"BucketFill starting point $bucketFillCmd is on a Line."))
     }
   }
+
+  private def makeIndexBoundaries(fillCmd: BucketFillCmd, canvas: Canvas, linePixel: Char): (Int, Int) = {
+    val linePixelPre = canvas.cells(fillCmd.y).lastIndexOf(linePixel, fillCmd.x)
+    val linePixelPost = canvas.cells(fillCmd.y).indexOf(linePixel, fillCmd.x + 1)
+    val startIndex = if (linePixelPre != -1) linePixelPre + 1 else 1                                          // Start index of horizontal line to fill
+    val endIndex = if (linePixelPost != -1) linePixelPost else canvas.cells(fillCmd.y).size - 1               // End index of horizontal line to fill
+    (startIndex, endIndex)
+  }
+
+  private def fillLinePortion(canvas: Canvas, fillCmd: BucketFillCmd, startIndex: Int, len: Int) =
+    canvas.cells(fillCmd.y).patch(startIndex, Vector.fill[Char](len)(fillCmd.colour), len)
 
   private def plotVerticalLine(lineCmd: LineCmd, canvas: Canvas, pixel: Char = 'X'): Either[CanvasError, Canvas] = {
     val lineNorm = lineCmd.normalize
