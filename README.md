@@ -1,5 +1,6 @@
-Draw Console
-------------
+Draw Console featuring immutable ScanLine Floodfill implementation
+------------------------------------------------------------------
+Floodfill implementation definitely needs refactoring but as a starting point it works.
 
 Run Instructions
 ----------------
