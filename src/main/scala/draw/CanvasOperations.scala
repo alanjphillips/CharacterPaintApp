@@ -25,10 +25,6 @@ object CanvasOperations {
   type Row = Vector[Char]
   type Matrix = Vector[Row]
 
-  trait Direction
-  case object Up extends Direction
-  case object Down extends Direction
-
   def updateCanvas(cmd: Command, canvas: Option[Canvas]): Either[CanvasError, Canvas] = cmd match {
     case createCmd: CreateCmd         => createCanvas(createCmd)
     case lineCmd: LineCmd             => lineOnCanvas(lineCmd, canvas)
@@ -93,6 +89,7 @@ object CanvasOperations {
         val updatedRow = fillLinePortion(canvas, fillCmd, startIndex, len)                                        // Perform the fill on selected line portion
         val updatedCanvas = Canvas(canvas.cells.updated(fillCmd.y, updatedRow))                                   // Update Canvas with updated line
 
+        // This could be refactored for sure, make re-usable
         val cellsAbove =
           if (fillCmd.y - 1 > 0) {                                                                                // Find and enqueue cells above current line that can be filled
             val cellsAboveFilledRow: Vector[(Char, Int)] = canvas.cells(fillCmd.y - 1).slice(startIndex, endIndex).zip(startIndex to endIndex)   // Zip to give tuple of (cell value, cell index) so that fillCmd can be created and added to Queue of cells to fill
