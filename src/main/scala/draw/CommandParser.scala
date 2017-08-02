@@ -10,7 +10,7 @@ object CommandParser {
       case cmd if cmd.head == "C" => toCreateCommand(cmd.tail)
       case cmd if cmd.head == "L" => toLineCommand(cmd.tail)
       case cmd if cmd.head == "R" => toRectangleCommand(cmd.tail)
-      case cmd if cmd.head == "B" => toBucketFillCommand(cmd.tail)
+      case cmd if cmd.head == "F" => toFloodFillCommand(cmd.tail)
       case _                      => Left(CmdError(s"Command not recognised: $line"))
     }
 
@@ -68,13 +68,13 @@ object CommandParser {
         )
       )
 
-  private def toBucketFillCommand(tailParams: List[String]): Either[Error, Command] =
+  private def toFloodFillCommand(tailParams: List[String]): Either[Error, Command] =
     if (tailParams.size != 3)
-      Left(CmdError(s"Incorrect number of params for BucketFillCmd 'B': $tailParams"))
+      Left(CmdError(s"Incorrect number of params for FloodFillCmd 'F': $tailParams"))
     else
       parsePF(
         Try(
-          BucketFillCmd(
+          FloodFillCmd(
             tailParams(0).toInt,
             tailParams(1).toInt,
             tailParams(2).toCharArray.head

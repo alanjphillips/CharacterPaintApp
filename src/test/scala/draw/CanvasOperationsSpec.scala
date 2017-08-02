@@ -65,16 +65,16 @@ class CanvasOperationsSpec extends WordSpec with Matchers {
       resultCanvas shouldBe Right(validCanvasHorizontalAndVertical)
     }
 
-    "bucket-fill a blank Canvas" in {
-      val fillCmd = BucketFillCmd(1, 1, 'o')
-      updateCanvas(fillCmd, Some(validCanvas)) shouldBe Right(validCanvasBucketFillEmpty)
+    "flood-fill a blank Canvas" in {
+      val fillCmd = FloodFillCmd(1, 1, 'o')
+      updateCanvas(fillCmd, Some(validCanvas)) shouldBe Right(validCanvasFloodFillEmpty)
     }
 
-    "bucket-fill a populated Canvas" in {
+    "flood-fill a populated Canvas" in {
       val verticalLineCmd1 = LineCmd(1, 2, 1, 3)
       val horizontalLineCmd = LineCmd(1, 4, 2, 4)
       val verticalLineCmd2 = LineCmd(4, 3, 4, 4)
-      val fillCmd = BucketFillCmd(3, 3, 'o')
+      val fillCmd = FloodFillCmd(3, 3, 'o')
 
       val resultCanvas = for {
         canvas1 <- updateCanvas(verticalLineCmd1, Some(validCanvasLarge))
@@ -83,35 +83,35 @@ class CanvasOperationsSpec extends WordSpec with Matchers {
         canvas4 <- updateCanvas(fillCmd, Some(canvas3))
       } yield canvas4
 
-      resultCanvas shouldBe Right(validCanvasBucketFill)
+      resultCanvas shouldBe Right(validCanvasFloodFill)
     }
 
-    "bucket-fill around a rectangle on Canvas" in {
+    "flood-fill around a rectangle on Canvas" in {
       val rectangleCmd = RectangleCmd(2, 2, 3, 3)
-      val fillCmd = BucketFillCmd(1, 2, 'o')
+      val fillCmd = FloodFillCmd(1, 2, 'o')
 
       val resultCanvas = for {
         canvas1 <- updateCanvas(rectangleCmd, Some(validCanvasLarge))
         canvas2 <- updateCanvas(fillCmd, Some(canvas1))
       } yield canvas2
 
-      resultCanvas shouldBe Right(validCanvasBucketFillBox)
+      resultCanvas shouldBe Right(validCanvasFloodFillBox)
     }
 
     "will not apply unknown Command" in {
       updateCanvas(UnknownCmd, None) shouldBe Right(Canvas(Vector.empty[Row]))
     }
 
-    "fail when bucket-fill start point is on a line" in {
+    "fail when flood-fill start point is on a line" in {
       val rectangleCmd = RectangleCmd(2, 2, 3, 3)
-      val fillCmd = BucketFillCmd(2, 2, 'o')
+      val fillCmd = FloodFillCmd(2, 2, 'o')
 
       val resultCanvas = for {
         canvas1 <- updateCanvas(rectangleCmd, Some(validCanvasLarge))
         canvas2 <- updateCanvas(fillCmd, Some(canvas1))
       } yield canvas2
 
-      resultCanvas shouldBe Left(CanvasError(s"BucketFill starting point $fillCmd is on a Line."))
+      resultCanvas shouldBe Left(CanvasError(s"FloodFill starting point $fillCmd is on a Line."))
     }
 
   }
@@ -171,7 +171,7 @@ object CanvasOperationsSpec {
     )
   )
 
-  def validCanvasBucketFillEmpty = Canvas(
+  def validCanvasFloodFillEmpty = Canvas(
     cells = Vector(
       Vector('-', '-', '-', '-', '-'),
       Vector('|', 'o', 'o', 'o', '|'),
@@ -192,7 +192,7 @@ object CanvasOperationsSpec {
     )
   )
 
-  def validCanvasBucketFill = Canvas(
+  def validCanvasFloodFill = Canvas(
     cells = Vector(
       Vector('-', '-', '-', '-', '-', '-'),
       Vector('|', 'o', 'o', 'o', 'o', '|'),
@@ -203,7 +203,7 @@ object CanvasOperationsSpec {
     )
   )
 
-  def validCanvasBucketFillBox = Canvas(
+  def validCanvasFloodFillBox = Canvas(
     cells = Vector(
       Vector('-', '-', '-', '-', '-', '-'),
       Vector('|', 'o', 'o', 'o', 'o', '|'),

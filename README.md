@@ -10,9 +10,9 @@ Run Instructions
 3. To run program:
 - sbt run
 
-BucketFill functionality
+FloodFill functionality
 ------------------------
-- BucketFill functionality is based on the following algorithm, Queue based ScanLine Fill:
+- FloodFill functionality is based on the following algorithm, Queue based ScanLine Fill:
 https://en.wikipedia.org/wiki/Flood_fill#Scanline_fill
 
 From Wikipedia page:

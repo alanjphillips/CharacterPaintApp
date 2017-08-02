@@ -45,15 +45,15 @@ class CommandParserSpec extends WordSpec with Matchers {
       buildCommand(input) shouldBe Left(CmdError(s"Incorrect number of params for RectangleCmd 'R': List(16, 1, 20)"))
     }
 
-    "build a BucketFillCommand given a BucketFill formatted String" in {
-      val input = "B 10 3 o"
-      val expected = BucketFillCmd(10, 3, 'o')
+    "build a FloodFillCommand given a FloodFill formatted String" in {
+      val input = "F 10 3 o"
+      val expected = FloodFillCmd(10, 3, 'o')
       buildCommand(input) shouldBe Right(expected)
     }
 
-    "return CmdError for incorrect number of params for a BucketFill formatted String" in {
-      val input = "B 10 3"
-      buildCommand(input) shouldBe Left(CmdError(s"Incorrect number of params for BucketFillCmd 'B': List(10, 3)"))
+    "return CmdError for incorrect number of params for a FloodFill formatted String" in {
+      val input = "F 10 3"
+      buildCommand(input) shouldBe Left(CmdError(s"Incorrect number of params for FloodFillCmd 'F': List(10, 3)"))
     }
 
     "return a CmdError for an unknown input Command String" in {

@@ -29,7 +29,7 @@ object CanvasOperations {
     case createCmd: CreateCmd         => createCanvas(createCmd)
     case lineCmd: LineCmd             => lineOnCanvas(lineCmd, canvas)
     case rectangleCmd: RectangleCmd   => rectangleOnCanvas(rectangleCmd, canvas)
-    case bucketFillCmd: BucketFillCmd => bucketFillCanvas(bucketFillCmd, canvas)
+    case floodFillCmd: FloodFillCmd   => floodFillCanvas(floodFillCmd, canvas)
     case _ => Right(Canvas(Vector.empty[Row]))
   }
 
@@ -77,9 +77,9 @@ object CanvasOperations {
     }
   }
 
-  private def bucketFillCanvas(bucketFillCmd: BucketFillCmd, canvasOpt: Option[Canvas], linePixel: Char = 'X'): Either[CanvasError, Canvas] = {
+  private def floodFillCanvas(floodFillCmd: FloodFillCmd, canvasOpt: Option[Canvas], linePixel: Char = 'X'): Either[CanvasError, Canvas] = {
     @tailrec
-    def fillCanvas(cellsToFill: Queue[BucketFillCmd], canvas: Canvas): Canvas = {
+    def fillCanvas(cellsToFill: Queue[FloodFillCmd], canvas: Canvas): Canvas = {
       if (cellsToFill.isEmpty)
         canvas
       else {
@@ -95,7 +95,7 @@ object CanvasOperations {
             val cellsAboveFilledRow: Vector[(Char, Int)] = canvas.cells(fillCmd.y - 1).slice(startIndex, endIndex).zip(startIndex to endIndex)   // Zip to give tuple of (cell value, cell index) so that fillCmd can be created and added to Queue of cells to fill
             cellsAboveFilledRow.foldLeft(cellsRemaining)(                                                         // Fold over above cells, accumulating cells that need to be filled
               (accQ, next) => {                                                                                   // Fold function
-                val toFillAbove = fillCmd.copy(x = next._2, y = fillCmd.y - 1)                                    // Create BucketFillCmd called toFillAbove, to be enqueued to be filled if valid
+                val toFillAbove = fillCmd.copy(x = next._2, y = fillCmd.y - 1)                                    // Create FloodFillCmd called toFillAbove, to be enqueued to be filled if valid
                 if (next._1 != linePixel && next._1 != toFillAbove.colour && !accQ.contains(toFillAbove))         // Check that cell above is not a line pixel, is not already filled, not already enqueued
                   accQ.enqueue(toFillAbove)                                                                       // Enqueue if passes and return updated queue
                 else accQ                                                                                         // if not passes, return existing queue
@@ -122,15 +122,15 @@ object CanvasOperations {
 
     val eCanvas = canvasOpt.toRight(CanvasError(s"No Canvas presented to draw line on."))
     eCanvas.flatMap { canvas =>
-      if (canvas.cells(bucketFillCmd.y)(bucketFillCmd.x) != linePixel) {
-        val filledCanvas = fillCanvas(Queue(bucketFillCmd), canvas)
+      if (canvas.cells(floodFillCmd.y)(floodFillCmd.x) != linePixel) {
+        val filledCanvas = fillCanvas(Queue(floodFillCmd), canvas)
         Right(filledCanvas)
       } else
-        Left(CanvasError(s"BucketFill starting point $bucketFillCmd is on a Line."))
+        Left(CanvasError(s"FloodFill starting point $floodFillCmd is on a Line."))
     }
   }
 
-  private def makeIndexBoundaries(fillCmd: BucketFillCmd, canvas: Canvas, linePixel: Char): (Int, Int) = {
+  private def makeIndexBoundaries(fillCmd: FloodFillCmd, canvas: Canvas, linePixel: Char): (Int, Int) = {
     val linePixelPre = canvas.cells(fillCmd.y).lastIndexOf(linePixel, fillCmd.x)
     val linePixelPost = canvas.cells(fillCmd.y).indexOf(linePixel, fillCmd.x + 1)
     val startIndex = if (linePixelPre != -1) linePixelPre + 1 else 1                                          // Start index of horizontal line to fill
@@ -138,7 +138,7 @@ object CanvasOperations {
     (startIndex, endIndex)
   }
 
-  private def fillLinePortion(canvas: Canvas, fillCmd: BucketFillCmd, startIndex: Int, len: Int) =
+  private def fillLinePortion(canvas: Canvas, fillCmd: FloodFillCmd, startIndex: Int, len: Int) =
     canvas.cells(fillCmd.y).patch(startIndex, Vector.fill[Char](len)(fillCmd.colour), len)
 
   private def plotVerticalLine(lineCmd: LineCmd, canvas: Canvas, pixel: Char = 'X'): Either[CanvasError, Canvas] = {

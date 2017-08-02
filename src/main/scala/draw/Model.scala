@@ -34,7 +34,7 @@ case class LineCmd(x1: Int, y1: Int, x2: Int, y2: Int) extends Command {
 
 case class RectangleCmd(x1: Int, y1: Int, x2: Int, y2: Int) extends Command
 
-case class BucketFillCmd(x: Int, y: Int, colour: Char) extends Command
+case class FloodFillCmd(x: Int, y: Int, colour: Char) extends Command
 
 case object QuitCmd extends Command
 
