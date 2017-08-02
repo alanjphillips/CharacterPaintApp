@@ -4,10 +4,9 @@ Floodfill implementation definitely needs refactoring but as a starting point it
 
 Run Instructions
 ----------------
-1. CD to DrawConsole folder
-2. To run tests
+1. To run tests
 - sbt test
-3. To run program:
+2. To run program:
 - sbt run
 
 FloodFill functionality
